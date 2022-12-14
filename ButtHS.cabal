@@ -1,0 +1,69 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           ButtHS
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/ParsaAlizadeh/ButtHS#readme>
+homepage:       https://github.com/ParsaAlizadeh/ButtHS#readme
+bug-reports:    https://github.com/ParsaAlizadeh/ButtHS/issues
+author:         Parsa Alizadeh
+maintainer:     parsa.alizadeh1@gmail.com
+copyright:      2022 Parsa Alizadeh
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/ParsaAlizadeh/ButtHS
+
+library
+  exposed-modules:
+      ButtHS.Butt
+      ButtHS.PipeT
+      ButtHS.TgConv
+      ButtHS.TgConv.Action
+      ButtHS.TgConv.Run
+      ButtHS.TgConv.Types
+      ButtHS.TgPipe
+  other-modules:
+      Paths_ButtHS
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , http-client-tls
+    , mtl
+    , random
+    , telegram-api
+    , text
+    , unordered-containers
+  default-language: Haskell2010
+
+executable ButtHS-exe
+  main-is: Main.hs
+  other-modules:
+      Echobot
+      Greetbot
+      RockPaperScissors
+      XO
+      Paths_ButtHS
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      ButtHS
+    , base >=4.7 && <5
+    , http-client-tls
+    , mtl
+    , random
+    , telegram-api
+    , text
+    , unordered-containers
+  default-language: Haskell2010
