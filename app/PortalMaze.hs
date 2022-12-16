@@ -16,7 +16,7 @@ import qualified Web.Telegram.API.Bot as W
 
 newtype CoroutineT r m a = CoroutineT
   { unCoroutineT :: ContT r (StateT (I.IntMap (CoroutineT r m ())) m) a }
-  deriving (Functor,Applicative,Monad,MonadCont,MonadIO)
+  deriving (Functor, Applicative, Monad, MonadCont, MonadIO)
 
 instance MonadTrans (CoroutineT r) where
   lift = CoroutineT . lift . lift
@@ -68,11 +68,9 @@ sendPanelView pos = do
   let txt = T.unlines $ ["```"] <> body <> ["", keys, "```"]
       body = map (T.center 7 ' ') $
         [ "W"
-        , T.empty
         , T.pack $ currentView!!0
         , "A " <> (T.pack $ currentView!!1) <> " D"
         , T.pack $ currentView!!2
-        , T.empty
         , "S"
         ]
       currentView = boardView pos
@@ -123,7 +121,7 @@ gameConv pos = do
         Just kill -> do
           kill
     Right c -> do
-      let Just newPos = moveBy c pos
+      let Just newPos = moveBy c pos -- narrowed by awaitMove
       case getAt newPos of
         'G' -> do
           void $ lift $ sendTextM "you win!"
@@ -133,9 +131,9 @@ gameConv pos = do
         '.' -> do
           gameConv newPos
         c -> do
-          case toDigit c of
-            Just d -> callCC $ \kill -> do
-              modify $ I.insert d (kill ())
+          let Just d = toDigit c  -- no other characters in gameboard
+          callCC $ \kill -> do
+            modify $ I.insert d (kill ())
           gameConv newPos
 
 startConv :: Handler
