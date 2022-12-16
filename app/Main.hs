@@ -7,7 +7,7 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 
 import ButtHS.TgConv (runButt)
-import Echobot (dispatcher)
+import PortalMaze (dispatcher)
 
 import qualified Data.Text as T
 import qualified Web.Telegram.API.Bot as W
