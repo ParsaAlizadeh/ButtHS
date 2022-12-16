@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module PortalMaze ( dispatcher ) where
 
@@ -89,52 +90,54 @@ moveBy c p
 getAt :: (Int,Int) -> Char
 getAt (i,j) = gameBoard!!i!!j
 
-awaitMove :: (Int,Int) -> TgConv (Either Int Char)
-awaitMove pos = do
-  (id,m) <- awaitText
-  if T.length m /= 1 then do
-    void $ replyTextM id "enter one of WASD or a digit"
-    awaitMove pos
-  else do
-    let c = T.head m
-    case toDigit c of
-      Just d -> do
-        return $ Left d
-      Nothing -> case moveBy c pos of
-        Nothing -> do
-          void $ replyTextM id "enter one of WASD or a digit"
-          awaitMove pos
-        Just _ ->
-          return $ Right c
+awaitMove :: MazeConv r (Either Int Char) -> (Int,Int) -> MazeConv r (Either Int Char)
+awaitMove cancel pos = do
+  (id,m) <- lift $ awaitText
+  if | m == "/cancel" -> do
+        void $ lift $ replyTextM id "ok, end the game"
+        cancel
+     | T.length m /= 1 -> do
+        void $ lift $ replyTextM id "enter one of WASD, a digit, or /cancel"
+        awaitMove cancel pos
+     | otherwise -> do
+        let c = T.head m
+        if | Just d <- toDigit c -> do
+              return $ Left d
+           | Just _ <- moveBy c pos -> do
+              return $ Right c
+           | otherwise -> do
+              void $ lift $ replyTextM id "enter one of WASD, a digit, or /cancel"
+              awaitMove cancel pos
 
 gameConv :: (Int,Int) -> MazeConv r ()
-gameConv pos = do
-  sendPanelView pos
-  move <- lift $ awaitMove pos
-  case move of
-    Left d -> do
-      maybekill <- gets (I.lookup d)
-      case maybekill of
-        Nothing -> do
-          void $ lift $ sendTextM "this checkpoint is not unlocked"
-          gameConv pos
-        Just kill -> do
-          kill
-    Right c -> do
-      let Just newPos = moveBy c pos -- narrowed by awaitMove
-      case getAt newPos of
-        'G' -> do
-          void $ lift $ sendTextM "you win!"
-        '#' -> do
-          void $ lift $ sendTextM "to the wall? try again"
-          gameConv pos
-        '.' -> do
-          gameConv newPos
-        c -> do
-          let Just d = toDigit c  -- no other characters in gameboard
-          callCC $ \kill -> do
-            modify $ I.insert d (kill ())
-          gameConv newPos
+gameConv pos = callCC $ \cancel -> gameConv' (cancel ()) pos where
+  gameConv' cancel pos = do
+    sendPanelView pos
+    move <- awaitMove cancel pos
+    case move of
+      Left d -> do
+        maybekill <- gets (I.lookup d)
+        case maybekill of
+          Nothing -> do
+            void $ lift $ sendTextM "this checkpoint is not unlocked"
+            gameConv' cancel pos
+          Just kill -> do
+            kill
+      Right c -> do
+        let Just newPos = moveBy c pos -- narrowed by awaitMove
+        case getAt newPos of
+          'G' -> do
+            void $ lift $ sendTextM "you win!"
+          '#' -> do
+            void $ lift $ sendTextM "to the wall? try again"
+            gameConv' cancel pos
+          '.' -> do
+            gameConv' cancel newPos
+          c -> do
+            let Just d = toDigit c  -- no other characters in gameboard
+            callCC $ \kill -> do
+              modify $ I.insert d (kill ())
+            gameConv' cancel newPos
 
 startConv :: Handler
 startConv = do
