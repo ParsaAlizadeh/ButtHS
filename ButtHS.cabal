@@ -51,6 +51,7 @@ executable ButtHS-exe
   other-modules:
       Echobot
       Greetbot
+      PortalMaze
       RockPaperScissors
       XO
       Paths_ButtHS
