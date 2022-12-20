@@ -92,12 +92,12 @@ getAt (i,j) = gameBoard!!i!!j
 
 awaitMove :: MazeConv r (Either Int Char) -> (Int,Int) -> MazeConv r (Either Int Char)
 awaitMove cancel pos = do
-  (id,m) <- lift $ awaitText
+  (i,m) <- lift $ awaitText
   if | m == "/cancel" -> do
-        void $ lift $ replyTextM id "ok, end the game"
+        void $ lift $ replyTextM i "ok, end the game"
         cancel
      | T.length m /= 1 -> do
-        void $ lift $ replyTextM id "enter one of WASD, a digit, or /cancel"
+        void $ lift $ replyTextM i "enter one of WASD, a digit, or /cancel"
         awaitMove cancel pos
      | otherwise -> do
         let c = T.head m
@@ -106,7 +106,7 @@ awaitMove cancel pos = do
            | Just _ <- moveBy c pos -> do
               return $ Right c
            | otherwise -> do
-              void $ lift $ replyTextM id "enter one of WASD, a digit, or /cancel"
+              void $ lift $ replyTextM i "enter one of WASD, a digit, or /cancel"
               awaitMove cancel pos
 
 gameConv :: (Int,Int) -> MazeConv r ()
@@ -141,14 +141,14 @@ gameConv pos = callCC $ \cancel -> gameConv' (cancel ()) pos where
 
 startConv :: Handler
 startConv = do
-  (id,_) <- awaitText
-  void $ replyTextM id $ "ok, starting the game"
+  (i,_) <- awaitText
+  void $ replyTextM i $ "ok, starting the game"
   runCoroutineT $ gameConv startingPoint
 
 usageConv :: Handler
 usageConv = do
-  (id,_) <- awaitText
-  void $ replyTextM id $ "/start the game"
+  (i,_) <- awaitText
+  void $ replyTextM i $ "/start the game"
 
 dispatcher :: Dispatcher
 dispatcher = commandD "start" startConv

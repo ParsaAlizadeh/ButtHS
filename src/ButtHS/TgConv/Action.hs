@@ -45,12 +45,12 @@ awaitText = do
 
 awaitNumber :: Integral a => TgConv (MessageId, a)
 awaitNumber = do
-  (id,txt) <- awaitText
+  (i,txt) <- awaitText
   case T.signed T.decimal txt of
     Left _ -> awaitNumber
     Right (a,rest) ->
       if T.null rest
-        then return (id,a)
+        then return (i,a)
         else awaitNumber
 
 sendMessageM :: W.SendMessageRequest -> TgConv W.MessageResponse

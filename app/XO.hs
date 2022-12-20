@@ -44,11 +44,11 @@ sendBoard board = void $ sendMessageM $ (sendMessageRequest text)
 
 awaitRange :: Int -> Int -> TgConv (MessageId, Int)
 awaitRange l r = do
-  (id,num) <- awaitNumber
+  (i,num) <- awaitNumber
   if l <= num && num <= r
-    then return (id,num)
+    then return (i,num)
     else do
-      void $ replyTextM id $ "please send a number between " <> tshow l <> " and " <> tshow r
+      void $ replyTextM i $ "please send a number between " <> tshow l <> " and " <> tshow r
       awaitRange l r
 
 awaitMove :: Board -> TgConv (Int,Int)
@@ -115,8 +115,8 @@ gameConv player board
 
 startConv :: Handler
 startConv = do
-  (id,_) <- awaitText
-  void $ replyTextM id $ "lets start the game!"
+  (i,_) <- awaitText
+  void $ replyTextM i $ "lets start the game!"
   winner <- gameConv X emptyBoard
   void $ sendTextM $ case winner of
     E -> "DRAW"
@@ -124,8 +124,8 @@ startConv = do
 
 usageConv :: Handler
 usageConv = do
-  (id,_) <- awaitText
-  void $ replyTextM id $ "/start the game!"
+  (i,_) <- awaitText
+  void $ replyTextM i $ "/start the game!"
 
 dispatcher :: Dispatcher
 dispatcher = commandD "start" startConv
